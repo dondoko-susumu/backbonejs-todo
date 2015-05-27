@@ -38,6 +38,11 @@ $(function() {
 		el: '#main-container'
 	});
 
+	// 新規追加欄
+	App.headerContainer = new App.Container({
+		el: '#header-container'
+	});
+
 	// NoteCollectionコレクションのデータを受信する
 	// Backbone.LocalStorageを使用しているので
 	// ブラウザのローカルストレージから読み込む
@@ -49,17 +54,6 @@ $(function() {
 			var models = initializeNotes();
 			App.noteCollection.reset(models);
 		}
-
-		// コレクションを渡して
-		// メモ一覧の親ビューを初期化する
-		var noteListView = new App.NoteListView({
-			collection: App.noteCollection
-		});
-
-		// 表示領域にメモ一覧を表示する
-		// App.Containerのshow()は受け取ったビューの
-		// render()を実行してDOM要素を自身のelに挿入する
-		App.mainContainer.show(noteListView);
 
 		//ルータの初期化と履歴管理の開始
 		App.router = new App.Router();
