@@ -5,6 +5,7 @@ App.Router = Backbone.Router.extend({
 		'notes/:id': 'showNoteDetail',
 		'new': 'showNewNote',
 		'notes/:id/edit': 'showEditNote',
+		'notes/search/:query': 'searchNote',
 		'*actions': 'defaultRoute'
 	},
 
@@ -13,18 +14,37 @@ App.Router = Backbone.Router.extend({
 		this.navigate('notes'); //hashchangeイベントを発生せずURLの更新だけ行う
 	},
 
-	showNoteList: function() {
+	// 引数models:検索フィルターされたリスト
+	showNoteList: function(models) {
 
-		// コレクションを渡して
-		// メモ一覧の親ビューを初期化する
-		var noteListView = new App.NoteListView({
-			collection: App.noteCollection
-		});
+		// 一覧表示用のコレクションを別途初期化する
+		if (!this.filteredCollection) {
+			this.filteredCollection = new App.NoteCollection();
+		}
 
-		// 表示領域にメモ一覧を表示する
-		// App.Containerのshow()は受け取ったビューの
-		// render()を実行してDOM要素を自身のelに挿入する
-		App.mainContainer.show(noteListView);
+		// ContainerでNoteListViewのインスタンスが表示中でないときのみ
+		// Containerのビューを初期化する
+		if(!App.mainContainer.has(App.NoteListView)) {
+			// コレクションを渡して
+			// メモ一覧の親ビューを初期化する
+			var noteListView = new App.NoteListView({
+				collection: this.filteredCollection
+			});
+
+			// 表示領域にメモ一覧を表示する
+			// App.Containerのshow()は受け取ったビューの
+			// render()を実行してDOM要素を自身のelに挿入する
+			App.mainContainer.show(noteListView);
+		}
+
+		// 検索されたモデルの配列が引数に渡されていればそちらを、
+		// そうでなければすべてのモデルを持つ
+		// App.noteCollectionインスタンスのモデルの配列を使用する
+		models = models || App.noteCollection.models;
+
+		// 一覧表示用のコレクションのreset()メソッドに
+		// 採用したほうのモデルの配列を渡す
+		this.filteredCollection.reset(models);
 
 		// [New Note]ボタンと検索窓
 		this.showNoteControl();
@@ -33,6 +53,13 @@ App.Router = Backbone.Router.extend({
 	// [New Note]ボタンと検索窓
 	showNoteControl: function() {
 		var noteControlView = new App.NoteControlView();
+
+		// submit:formイベントの監視を追加する
+		noteControlView.on('submit:form', function(query){
+			this.searchNote(query);
+			this.navigate('notes/search/'+query);
+		},this);
+
 		App.headerContainer.show(noteControlView);
 	},
 
@@ -100,5 +127,13 @@ App.Router = Backbone.Router.extend({
 		});
 
 		App.mainContainer.show(noteFormView);
+	},
+
+	// Search
+	searchNote: function(query) {
+		var filtered = App.noteCollection.filter(function(note){
+			return note.get('title').indexOf(query) !== -1;
+		});
+		this.showNoteList(filtered);
 	}
 });

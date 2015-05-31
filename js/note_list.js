@@ -11,6 +11,9 @@ App.NoteListView = Backbone.View.extend({
 	initialize: function(options) {
 		// Backbone.Collectionインスタンスを受け取る
 		this.collection = options.collection;
+
+		// コレクションのresetイベントに応じてrender()を呼び出す
+		this.listenTo(this.collection,'reset',this.render);
 	},
 
 	render: function() {

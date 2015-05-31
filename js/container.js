@@ -29,5 +29,9 @@ App.Container = Backbone.View.extend({
 	empty: function() {
 		this.destroyView(this.currentView);
 		this.currentView = null;
+	},
+
+	has: function(obj) {
+		return this.currentView instanceof obj;
 	}
 });
