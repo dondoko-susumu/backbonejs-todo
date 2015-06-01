@@ -17,6 +17,10 @@ App.NoteListView = Backbone.View.extend({
 	},
 
 	render: function() {
+
+		// this.$el.html()が呼び出される前に古いビューを破棄しておく
+		this.removeItemViews();
+
 		// テンプレートから自身のDOM構築を行う
 		var template = $('#noteListView-template').html();
 		this.$el.html(template);
@@ -32,7 +36,8 @@ App.NoteListView = Backbone.View.extend({
 
 		// コレクション内のすべてのモデルを取り出して
 		// 個々のビューを生成し、親ビューのDOMツリーを挿入する
-		this.collection.each(function(note){
+		// 後で適切に破棄できるように子ビュー参照をitemViewsに保持しておく
+		this.itemViews = this.collection.map(function(note){
 			var itemView = new App.NoteListItemView({
 				model:note
 			});
@@ -43,6 +48,14 @@ App.NoteListView = Backbone.View.extend({
 			$insertionPoint.append(itemView.render().$el);
 			//$insertionPoint.append(itemView.render().$el.html());
 			//console.log($insertionPoint.html());
+
+			return itemView;
 		}, this);
+	},
+
+	// すべての子ビューを破棄するメソッドを追加する
+	removeItemViews: function() {
+		// 保持しているすべてのビューのremove()を呼び出す
+		_.invoke(this.itemViews,'remove');
 	}
 });
